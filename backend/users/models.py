@@ -1,53 +1,48 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-import uuid
 
 
+class User(AbstractUser):
+    """ Модель пользователя. """
 
-class Employee(AbstractUser):
-    """ Модель сотрудника. """
-
-    employee_id = models.CharField(
-        max_length=100,
+    email = models.EmailField(
+        max_length=150,
         unique=True,
-        editable=False,  # Поле не должно редактироваться
-        default=uuid.uuid4,  # Генерация уникального идентификатора
+        verbose_name='E-mail',
+    )
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        validators=(
+            validate_me,
+            RegexValidator(
+                regex=r'^[\w.@+-]+\Z',
+                message='В имени пользователя можно использовать'
+                        ' только буквы, цифры и символы "@/./+/-/_"!',
+            ),
+        ),
+        verbose_name='Имя пользователя',
     )
     first_name = models.CharField(
-        max_length=100,
+        max_length=150,
         verbose_name='Имя',
     )
     last_name = models.CharField(
-        max_length=100,
+        max_length=150,
         verbose_name='Фамилия',
     )
-    email = models.EmailField(
-        max_length=100,
-        unique=True,
-        verbose_name='E-mail'
+    password = models.CharField(
+        max_length=21,
+        verbose_name='Пароль',
     )
-    status = models.CharField(
-        max_length=50
-    )  # E.g., completed, in-progress
-    registration_date = models.DateField(
-        auto_now_add=True,
-        db_index=True,
-        verbose_name='Дата регистрации сотрудника'
-    )
-    last_login_date = models.DateField(
-        auto_now_add=True,
-        db_index=True,
-        verbose_name='Дата последнего входа сотрудника',
-    )
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        ordering = (
+            'username',
+        )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.employee_id})"
-
-
-
-
-
-
-
-
+        return self.username
