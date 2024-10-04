@@ -16,7 +16,8 @@ class WorkersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ('id', 'employee_id', 'first_name', 'patronymic', 'position')
-        
+
+
 # Сериализатор для навыков сотрудника
 class SkillSerializer(serializers.ModelSerializer):
     skill = serializers.CharField(source='skill.skill_name')
@@ -41,16 +42,16 @@ class EmployeeSerializer(serializers.ModelSerializer):
     skills = SkillSerializer(many=True)
     competencies = CompetencySerializer(source='employeecompetency_set', many=True)
     position = serializers.CharField(source='positions.first.position.position_name', allow_null=True)
-    grade = serializers.CharField(source='grades.grade.grade_name',)
-    
-    
+    grade = serializers.CharField(source='grades.grade.grade_name', )
+
     key_people = serializers.SerializerMethodField()
     bus_factor = serializers.SerializerMethodField()
     education = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
-        fields = ['id', 'position', 'worker', 'grade', 'key_people', 'bus_factor', 'education', 'skills', 'competencies']
+        fields = ['id', 'position', 'worker', 'grade', 'key_people', 'bus_factor', 'education', 'skills',
+                  'competencies']
 
     def get_worker(self, obj):
         return f"{obj.first_name} {obj.last_name}"
@@ -66,15 +67,16 @@ class EmployeeSerializer(serializers.ModelSerializer):
     # Проверка наличия записи в EmployeeTrainingApplication (образование)
     def get_education(self, obj):
         return EmployeeTrainingApplication.objects.filter(employee=obj).exists()
-    
+
     # def get_grade(self, obj):
     #     try:
     #         return obj.employeegrade.grade.grade_name
     #     except EmployeeGrade.DoesNotExist:
     #         return None
-        
+
     # def get_position(self, obj):
     #     try:
     #         return obj.employeeposition_set.first().position  # Получаем первую связанную позицию
     #     except (AttributeError, EmployeePosition.DoesNotExist):
     #         return None
+    
