@@ -1,151 +1,151 @@
 from django.contrib import admin
-
-from core.models import (
-    DevelopmentPlan,
-    Engagement,
-    KeyPeople,
-    TrainingApplication,
-    BusFactor,
-    Grade,
-    KeySkill,
-    Team,
-    EmployeeTeam,
-    Position,
-    Competency,
-    Skill,
-    AssesmentSkill,
-    EmployeeAssesmentSkill,
-    SkillForCompetency,
+from .models import (
+    DevelopmentPlan, EmployeeDevelopmentPlan, Engagement, EmployeeEngagement,
+    KeyPeople, EmployeeKeyPeople, TrainingApplication, EmployeeTrainingApplication,
+    BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
+    Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
+    TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
+    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill
 )
-
-
-#
-# @admin.register(Employee)
-# class EmployeeAdmin(admin.ModelAdmin):
-#     pass
-#     list_display = (
-#         'pk', 'first_name', 'last_name', 'email', 'status',
-#         'registration_date', 'last_login_date',
-#     )
-
-
-@admin.register(AssesmentSkill)
-class AssesmentSkillAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(EmployeeAssesmentSkill)
-class EmployeeAssesmentSkillAdmin(admin.ModelAdmin):
-    pass
-
 
 @admin.register(DevelopmentPlan)
 class DevelopmentPlanAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'plan_name',
-        'employee_count',
-    )
-    readonly_fields = ('employee_count',)
+    list_display = ('plan_name', 'employee_count')
+    search_fields = ('plan_name',)
 
-
-# @admin.register(EmployeeDevelopmentPlan)
-# class EmployeeDevelopmentPlanAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'employee', 'development_plan', 'performance_score',
-#         'add_date',
-#     )
-#     fields = (
-#         'employee', 'development_plan', 'performance_score',
-#     )
-
+@admin.register(EmployeeDevelopmentPlan)
+class EmployeeDevelopmentPlanAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'development_plan', 'development_progress')
+    search_fields = ('employee__name', 'development_plan__plan_name')
 
 @admin.register(Engagement)
 class EngagementAdmin(admin.ModelAdmin):
-    readonly_fields = ('employee_count',)
+    list_display = ('engagement_name', 'employee_count')
+    search_fields = ('engagement_name',)
 
-
-# @admin.register(EmployeeEngagement)
-# class EmployeeEngagementAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'employee', 'engagement', 'performance_score', 'add_date',
-#     )
-
+@admin.register(EmployeeEngagement)
+class EmployeeEngagementAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'engagement', 'engagement_level')
+    search_fields = ('employee__name', 'engagement__engagement_name')
 
 @admin.register(KeyPeople)
 class KeyPeopleAdmin(admin.ModelAdmin):
-    readonly_fields = ('employee_count',)
+    list_display = ('key_people_name', 'employee_count')
+    search_fields = ('key_people_name',)
 
-
-# @admin.register(EmployeeKeyPeople)
-# class EmployeeKeyPeopleAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'add_date',
-#     )
-
+@admin.register(EmployeeKeyPeople)
+class EmployeeKeyPeopleAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'key_people')
+    search_fields = ('employee__name', 'key_people__key_people_name')
 
 @admin.register(TrainingApplication)
 class TrainingApplicationAdmin(admin.ModelAdmin):
-    readonly_fields = ('employee_count',)
+    list_display = ('training_name', 'employee_count')
+    search_fields = ('training_name',)
 
+@admin.register(EmployeeTrainingApplication)
+class EmployeeTrainingApplicationAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'training_application')
+    search_fields = ('employee__name', 'training_application__training_name')
 
 @admin.register(BusFactor)
 class BusFactorAdmin(admin.ModelAdmin):
-    readonly_fields = ('employee_count',)
+    list_display = ('bus_factor_name', 'employee_count')
+    search_fields = ('bus_factor_name',)
 
+@admin.register(EmployeeBusFactor)
+class EmployeeBusFactorAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'bus_factor')
+    search_fields = ('employee__name', 'bus_factor__bus_factor_name')
 
 @admin.register(Grade)
 class GradeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('grade_name',)
+    search_fields = ('grade_name',)
 
+@admin.register(EmployeeGrade)
+class EmployeeGradeAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'grade')
+    search_fields = ('employee__name', 'grade__grade_name')
 
 @admin.register(KeySkill)
 class KeySkillAdmin(admin.ModelAdmin):
-    readonly_fields = ('employee_count',)
+    list_display = ('skill_name', 'employee_count')
+    search_fields = ('skill_name',)
 
+@admin.register(EmployeeKeySkill)
+class EmployeeKeySkillAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'key_skill', 'skill_level')
+    search_fields = ('employee__name', 'key_skill__skill_name')
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
-    pass
-
+    list_display = ('team_name',)
+    search_fields = ('team_name',)
 
 @admin.register(EmployeeTeam)
 class EmployeeTeamAdmin(admin.ModelAdmin):
-    list_display = ('manager', 'team', 'get_employees')
-
-    def get_employees(self, obj):
-        return ", ".join(
-            [employee.__str__() for employee in obj.employee.all()]
-        )
-
-    get_employees.short_description = 'Сотрудники'
-
+    list_display = ('employee', 'team')
+    search_fields = ('employee__name', 'team__team_name')
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
-    readonly_fields = ('grade_count',)
+    list_display = ('position_name', 'grade_count')
+    search_fields = ('position_name',)
 
-
-@admin.register(Skill)
-class SkillAdmin(admin.ModelAdmin):
-    readonly_fields = ('employee_count',)
-
-
-# @admin.register(SkillForCompetency)
-# class SkillForCompetencyAdmin(admin.ModelAdmin):
-#     pass
-
-
-class SkillForCompetency(admin.TabularInline):
-    model = SkillForCompetency
-    extra = 1
-
+@admin.register(EmployeePosition)
+class EmployeePositionAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'position')
+    search_fields = ('employee__name', 'position__position_name')
 
 @admin.register(Competency)
 class CompetencyAdmin(admin.ModelAdmin):
-    inlines = (SkillForCompetency,)
-    list_display = (
-        'pk',
-        'competency_name',
-    )
-    readonly_fields = ('employee_count',)
+    list_display = ('competency_name', 'employee_count')
+    search_fields = ('competency_name',)
+
+@admin.register(PositionCompetency)
+class PositionCompetencyAdmin(admin.ModelAdmin):
+    list_display = ('position', 'competency')
+    search_fields = ('position__position_name', 'competency__competency_name')
+
+@admin.register(TeamPosition)
+class TeamPositionAdmin(admin.ModelAdmin):
+    list_display = ('team', 'position')
+    search_fields = ('team__team_name', 'position__position_name')
+
+@admin.register(EmployeeCompetency)
+class EmployeeCompetencyAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'competency', 'competency_level')
+    search_fields = ('employee__name', 'competency__competency_name')
+
+@admin.register(Skill)
+class SkillAdmin(admin.ModelAdmin):
+    list_display = ('skill_name', 'employee_count')
+    search_fields = ('skill_name',)
+
+@admin.register(EmployeeSkill)
+class EmployeeSkillAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'skill', 'skill_level')
+    search_fields = ('employee__name', 'skill__skill_name')
+
+@admin.register(SkillForCompetency)
+class SkillForCompetencyAdmin(admin.ModelAdmin):
+    list_display = ('skill', 'competency')
+    search_fields = ('skill__skill_name', 'competency__competency_name')
+
+@admin.register(ExpectedSkill)
+class ExpectedSkillAdmin(admin.ModelAdmin):
+    list_display = ('expected_skill_name', 'employee_count')
+    search_fields = ('expected_skill_name',)
+
+@admin.register(EmployeeExpectedSkill)
+class EmployeeExpectedSkillAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'expected_skill')
+    search_fields = ('employee__name', 'expected_skill__expected_skill_name')
+
+@admin.register(CompetencyForExpectedSkill)
+class CompetencyForExpectedSkillAdmin(admin.ModelAdmin):
+    list_display = ('expected_skill', 'competency')
+    search_fields = ('expected_skill__expected_skill_name', 'competency__competency_name')
+
+

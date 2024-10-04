@@ -1,66 +1,23 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework import routers
 
 from api.views import (
-    MetricViewSet,
-    EmployeesViewSet,
-    TeamMetricViewSet,
-    TeamCountEmployeeViewSet,
-    TeamIndividualCompetenciesViewSet,
-    TeamIndividualSkillsViewSet,
-    CompetencyLevelViewSet,
-    SkillLevelViewSet,
+WorkersViewSet
 )
-
 
 router_v1 = routers.DefaultRouter()
 
-router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/count_employees',
-    TeamCountEmployeeViewSet,
-    basename='count_employees',
-)
-router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/employees',
-    EmployeesViewSet,
-    basename='employees',
-)
-router_v1.register(
-    r'metrics/(?P<metric_type>development_plan|involvement)/(?P<employee_id>\d+)',
-    MetricViewSet,
-    basename='metric',
-)
 
-router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/'
-    r'(?P<metric_type>development_plan|involvement|skill_assessment)',
-    TeamMetricViewSet,
-    basename='team_metric',
-)
+router_v1.register(r'workers/list', WorkersViewSet, basename='workers')
+# router_v1.register(r'products', ProductListViewSet, basename='product')
+# router_v1.register(r'outfit', ProductDetailViewSet, basename='outfit')
+# router_v1.register(r'shopping', ShoppingViewSet, basename='shopping')
 
 
-router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/competencies(?:/(?P<employee_id>\d+))?',
-    TeamIndividualCompetenciesViewSet,
-    basename='individual_competencies',
-)
 
-router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/competencies_level(?:/(?P<employee_id>\d+))?',
-    CompetencyLevelViewSet,
-    basename='competency_level',
-)
-router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/skills(?:/(?P<employee_id>\d+))?',
-    TeamIndividualSkillsViewSet,
-    basename='skills',
-)
-router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/skills/level',
-    SkillLevelViewSet,
-    basename='skill-level',
-)
 
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
+    # path('auth/', include('djoser.urls')),
+    # re_path('auth/', include('djoser.urls.authtoken')),
 ]
