@@ -2,10 +2,10 @@ from django.core.management.base import BaseCommand
 from faker import Faker
 import random
 from core.models import (Employee, DevelopmentPlan, EmployeeDevelopmentPlan, Engagement, EmployeeEngagement,
-                          KeyPeople, EmployeeKeyPeople, TrainingApplication, EmployeeTrainingApplication, 
-                          BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill, 
-                          Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency, 
-                          TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency, 
+                          KeyPeople, EmployeeKeyPeople, TrainingApplication, EmployeeTrainingApplication,
+                          BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
+                          Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
+                          TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
                           ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill)
 
 class Command(BaseCommand):
