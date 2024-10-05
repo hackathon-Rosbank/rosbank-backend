@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'djoser',
     'users.apps.UsersConfig',
     'api.apps.ApiConfig',
+    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -169,6 +170,6 @@ REST_FRAMEWORK = {
 #     },
 # }
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.Employee'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
