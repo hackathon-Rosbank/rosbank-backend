@@ -1,7 +1,54 @@
+from tabnanny import verbose
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.formats import date_format
+from django_filters.utils import verbose_field_name
 
 from users.models import Employee
+
+
+# id сотрудника, название навыка, оценка навыка сотрудника(число 1-5),
+# вовлеченность сотрудника
+class AssesmentSkill(models.Model):
+    assesmentskill_name = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name='Название оценки',
+    )
+
+    class Meta:
+        verbose_name = 'Оценка навыка'
+        verbose_name_plural = 'Оценки навыков'
+        ordering = (
+            'assesmentskill_name',
+        )
+
+
+class EmployeeAssesmentSkill(models.Model):
+    """ Модель -Оценка сотрудника-. """
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name='assesments_skills',
+    )
+    assesmentskill = models.ForeignKey(
+        AssesmentSkill,
+        on_delete=models.CASCADE,
+        verbose_name='Оценка навыка сотрудника',
+    )
+    assesment = models.IntegerField(
+        default=0,
+        verbose_name='Оценка навыка сотрудника',
+    )
+
+    class Meta:
+        verbose_name = 'Оценка навыка сотрудника'
+        verbose_name_plural = 'Оценки навыков сотрудников'
+        ordering = (
+        'employee',
+    )
 
 
 class DevelopmentPlan(models.Model):
@@ -16,6 +63,7 @@ class DevelopmentPlan(models.Model):
         default=0,
         verbose_name='Кол-во сотрудников с планом развития',
     )
+
 
     class Meta:
         verbose_name = 'План развития'
@@ -34,10 +82,10 @@ class EmployeeDevelopmentPlan(models.Model):
     employee = models.OneToOneField(
         Employee,
         on_delete=models.CASCADE,
+        related_name='development_plans',
     )
     development_plan = models.ForeignKey(
         DevelopmentPlan,
-        related_name='employee_development_plans',
         on_delete=models.CASCADE,
         verbose_name='План развития',
     )
@@ -45,6 +93,11 @@ class EmployeeDevelopmentPlan(models.Model):
         max_digits=5,
         decimal_places=2,
         verbose_name='Процент развития',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления сотрудника в план развития',
     )
 
     class Meta:
@@ -86,16 +139,21 @@ class EmployeeEngagement(models.Model):
 
     employee = models.OneToOneField(
         Employee,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='employee_engagements',
     )
     engagement = models.ForeignKey(
         Engagement,
-        related_name='employee_engagements',
         on_delete=models.CASCADE,
         verbose_name='Вовлеченность',
     )
     engagement_level = models.IntegerField(
         verbose_name='Уровень вовлеченности сотрудника',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата вовлечения сотрудника',
     )
 
     class Meta:
@@ -138,12 +196,17 @@ class EmployeeKeyPeople(models.Model):
     employee = models.OneToOneField(
         Employee,
         on_delete=models.CASCADE,
+        related_name='keys_people',
     )
     key_people = models.ForeignKey(
         KeyPeople,
-        related_name='employee_keys_peoples',
         on_delete=models.CASCADE,
         verbose_name='Key people',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления ключевого сотрудника',
     )
 
     class Meta:
@@ -186,12 +249,17 @@ class EmployeeTrainingApplication(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
+        related_name='training_applications',
     )
     training_application = models.ForeignKey(
         TrainingApplication,
-        related_name='employee_training_applications',
         on_delete=models.CASCADE,
         verbose_name='Заявка на обучение',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления заявки на обучение',
     )
 
     class Meta:
@@ -233,13 +301,18 @@ class EmployeeBusFactor(models.Model):
 
     employee = models.OneToOneField(
         Employee,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='bus_factors',
     )
     bus_factor = models.ForeignKey(
         BusFactor,
-        related_name='employee_bus_factors',
         on_delete=models.CASCADE,
         verbose_name='Bus фактор',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления bud-фактора сотрудника',
     )
 
     class Meta:
@@ -278,10 +351,10 @@ class EmployeeGrade(models.Model):
     employee = models.OneToOneField(
         Employee,
         on_delete=models.CASCADE,
+        related_name='grades',
     )
     grade = models.ForeignKey(
         Grade,
-        related_name='employee_grades',
         on_delete=models.CASCADE,
         verbose_name='Класс',
     )
@@ -326,16 +399,21 @@ class EmployeeKeySkill(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
+        related_name='key_skills',
     )
     key_skill = models.ForeignKey(
         KeySkill,
-        related_name='employee_key_skills',
         on_delete=models.CASCADE,
         verbose_name='Ключевой навык',
     )
     skill_level = models.CharField(
         max_length=255,
         verbose_name='Уровень ключевого навыка сотрудника',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления ключевого навыка сотрудника',
     )
 
     class Meta:
@@ -370,11 +448,11 @@ class EmployeeTeam(models.Model):
 
     employee = models.OneToOneField(
         Employee,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='teams',
     )
     team = models.ForeignKey(
         Team,
-        related_name='employee_teams',
         on_delete=models.CASCADE,
         verbose_name='Команда',
     )
@@ -419,11 +497,11 @@ class EmployeePosition(models.Model):
 
     employee = models.ForeignKey(
         Employee,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='positions',
     )
     position = models.ForeignKey(
         Position,
-        related_name='employee_positions',
         on_delete=models.CASCADE,
         verbose_name='Должность',
     )
@@ -468,6 +546,7 @@ class PositionCompetency(models.Model):
     position = models.ForeignKey(
         Position,
         on_delete=models.CASCADE,
+        related_name='competencies',
     )
     competency = models.ForeignKey(
         Competency,
@@ -520,10 +599,10 @@ class EmployeeCompetency(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
+        related_name='employee_competencies',
     )
     competency = models.ForeignKey(
         Competency,
-        related_name='employee_competencies',
         on_delete=models.CASCADE,
         verbose_name='Компетенция',
     )
@@ -570,10 +649,10 @@ class EmployeeSkill(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
+        related_name='skills',
     )
     skill = models.ForeignKey(
         Skill,
-        related_name='employee_skills',
         on_delete=models.CASCADE,
         verbose_name='Навык',
     )
@@ -590,7 +669,7 @@ class EmployeeSkill(models.Model):
         )
 
     def __str__(self):
-        return f"{self.employee} - {self.skill} ({self.skill_level})"
+        return f"{self.employee.first_name} {self.employee.last_name} - {self.skill.skill_name} ({self.skill_level})"
 
 
 class SkillForCompetency(models.Model):
@@ -651,11 +730,10 @@ class EmployeeExpectedSkill(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
-        verbose_name='Сотрудник',
+        related_name='expected_skills',
     )
     expected_skill = models.ForeignKey(
         ExpectedSkill,
-        related_name='employee_expected_skills',
         on_delete=models.CASCADE,
         verbose_name='Ожидаемый навык',
     )
