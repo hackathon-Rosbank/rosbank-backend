@@ -123,7 +123,7 @@ class DevelopmentPlan(models.Model):
 class EmployeeDevelopmentPlan(models.Model):
     """ Модель -План развития сотрудника-. """
 
-    employee = models.OneToOneField(
+    employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
         related_name='development_plans',
@@ -133,7 +133,7 @@ class EmployeeDevelopmentPlan(models.Model):
         on_delete=models.CASCADE,
         verbose_name='План развития',
     )
-    development_progress = models.DecimalField(
+    performance_score = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         verbose_name='Процент развития',
@@ -191,7 +191,7 @@ class EmployeeEngagement(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Вовлеченность',
     )
-    engagement_level = models.IntegerField(
+    performance_score = models.IntegerField(
         verbose_name='Уровень вовлеченности сотрудника',
     )
     add_date = models.DateField(
@@ -204,7 +204,7 @@ class EmployeeEngagement(models.Model):
         verbose_name = 'Вовлеченность сотрудника'
         verbose_name_plural = 'Вовлеченность сотрудников'
         ordering = (
-            'engagement_level',
+            'performance_score',
         )
 
     def __str__(self):
