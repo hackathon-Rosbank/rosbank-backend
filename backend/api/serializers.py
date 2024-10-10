@@ -6,7 +6,7 @@ from core.models import (
     BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
     Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
     TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
-    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
+    ExpectedSkill, EmployeeExpectedSkill, SkillTypeEnum, Employee
 )
 from django.urls import reverse
 from rest_framework.validators import UniqueTogetherValidator
@@ -160,24 +160,6 @@ class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
     completionForToday = serializers.CharField()
 
 
-class SkillAverageRequestSerializer(serializers.Serializer):
-    employeeIds = serializers.ListField(
-        child=serializers.UUIDField(),  # Ожидаем список UUID сотрудников
-        allow_empty=False
-    )
-    skill_type = serializers.ChoiceField(
-        choices=[('hard', 'Hard Skill'), ('soft', 'Soft Skill')],  # Тип навыка
-        required=True
-    )
-
-
-class SkillAverageResponseSerializer(serializers.Serializer):
-    skills = serializers.ListField(
-        child=serializers.DictField(),  # Список словарей с навыками
-        required=True
-    )
-
-
 class TeamMetricsRequestSerializer(serializers.Serializer):
     employeeIds = serializers.ListField(
         child=serializers.CharField()
@@ -190,16 +172,38 @@ class TeamMetricsRequestSerializer(serializers.Serializer):
     )
 
 
-class SkillAssessmentSerializer(serializers.Serializer):
-    """ """
+class PeriodSerializer(serializers.Serializer):
+    month = serializers.CharField(max_length=20)
+    year = serializers.IntegerField()
 
+class SkillAssessmentRequestSerializer(serializers.Serializer):
+    employeeIds = serializers.ListField(child=serializers.CharField())
+    skillDomen = serializers.CharField(max_length=50)
+    startPeriod = PeriodSerializer()
+    endPeriod = PeriodSerializer()
+
+class SkillDataSerializer(serializers.Serializer):
     skillId = serializers.IntegerField()
-    skillName = serializers.CharField(max_length=255)
+    skillName = serializers.CharField(max_length=100)
+    assesment = serializers.IntegerField()
+
+class TeamSkillAssessmentResponseSerializer(serializers.Serializer):
+    period = PeriodSerializer()
+    skillsData = serializers.ListField(child=SkillDataSerializer())
+
+
+
+class SkillDomenRequestSerializer(serializers.Serializer):
+    skillDomen = serializers.ChoiceField(
+        choices=SkillTypeEnum.choices(),
+        help_text="Тип навыка: hard или soft"
+    )
+    
+    
+class CompetencySerializer(serializers.Serializer):
+    competencyId = serializers.IntegerField()
+    skillDomen = serializers.CharField()
+    competencyName = serializers.CharField()
     plannedResult = serializers.FloatField()
     actualResult = serializers.FloatField()
-
-
-class SkillAssessmentResponseSerializer(serializers.Serializer):
-    """ """
-
-    data = SkillAssessmentSerializer(many=True)
+    
