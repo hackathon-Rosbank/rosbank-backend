@@ -551,7 +551,7 @@ class Position(models.Model):
 class EmployeePosition(models.Model):
     """ Модель -Должность сотрудника-. """
 
-    employee = models.ForeignKey(
+    employee = models.OneToOneField(
         Employee,
         on_delete=models.CASCADE,
         related_name='positions',
