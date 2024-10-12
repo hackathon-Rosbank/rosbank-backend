@@ -94,11 +94,11 @@ if DB_TYPE == 'postgres':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('POSTGRES_DB', 'django'),
-            'USER': os.getenv('POSTGRES_USER', 'django'),
-            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', ''),
-            'PORT': os.getenv('DB_PORT', 5432)
+            'NAME': os.getenv('POSTGRES_DB'),
+            'USER': os.getenv('POSTGRES_USER'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT')
         }
     }
 else:
@@ -108,6 +108,17 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB'),
+#         'USER': os.getenv('POSTGRES_USER'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+#         'HOST': os.getenv('DB_HOST'),
+#         'PORT': os.getenv('DB_PORT')
+#     }
+# }
 
 
 # Password validation
@@ -160,6 +171,9 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PAGINATION_CLASS': 'api.pagination.LimitPagination',
     # 'PAGE_SIZE': 6,
 }
+
+
+
 
 # DJOSER = {
 #     'HIDE_USERS': False,
