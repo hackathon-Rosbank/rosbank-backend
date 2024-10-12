@@ -550,7 +550,7 @@ class Competency(models.Model):
         default=0, verbose_name='Количество сотрудников с данной компетенцией'
     )
     competency_type = models.CharField(
-        max_length=4,
+        max_length=100,
         choices=SkillTypeEnum.choices(),
         default=SkillTypeEnum.HARD,
         verbose_name='Тип компетенции',
