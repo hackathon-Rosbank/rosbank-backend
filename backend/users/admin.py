@@ -2,9 +2,9 @@ from django.contrib import admin
 from core.models import (
     Employee, EmployeeKeyPeople, EmployeeBusFactor,
     EmployeeTrainingApplication, EmployeeGrade,
-    EmployeeSkill, EmployeeCompetency, EmployeePosition
+    EmployeeSkill, EmployeeCompetency, EmployeePosition, EmployeeDevelopmentPlan, EmployeeEngagement
 )
-
+from users.models import ManagerTeam
 
 class EmployeeKeyPeopleInline(admin.TabularInline):
     model = EmployeeKeyPeople
@@ -41,7 +41,15 @@ class EmployeePositionInline(admin.TabularInline):
     extra = 1
 
 
-@admin.register(Employee)
+class EmployeeDevelopmentPlanInline(admin.TabularInline):
+    model = EmployeeDevelopmentPlan
+    extra = 1
+
+class EmployeeEngagementInline(admin.TabularInline):
+    model = EmployeeEngagement
+    extra = 1
+    
+@admin.register(Employee)  # Регистрация модели через декоратор
 class UserAdmin(admin.ModelAdmin):
     inlines = [
         EmployeeKeyPeopleInline,
@@ -50,15 +58,30 @@ class UserAdmin(admin.ModelAdmin):
         EmployeeSkillInline,  # Инлайн для скиллов
         EmployeeCompetencyInline,  # Инлайн для компетенций
         EmployeeGradeInline,
-        EmployeePositionInline
+        EmployeePositionInline,
+        EmployeeDevelopmentPlanInline,
+        EmployeeEngagementInline
     ]
 
     list_display = (
-        'pk', 'email', 'username', 'first_name', 'last_name'
+        'pk', 'employee_id', 'email', 'first_name', 'last_name'
     )
     search_fields = (
-        'username', 'email', 'first_name', 'last_name'
+        'email', 'first_name', 'last_name'
     )
     list_filter = (
-        'username', 'email'
+        'email', 'first_name', 'last_name'
+    )
+
+# Админка для ManagerTeam
+@admin.register(ManagerTeam)  # Регистрация модели через декоратор
+class ManagerTeamAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser'
+    )
+    search_fields = (
+        'email', 'first_name', 'last_name'
+    )
+    list_filter = (
+        'email', 'first_name', 'last_name', 'is_staff', 'is_superuser'
     )

@@ -30,11 +30,17 @@ class DevelopmentPlanAdmin(admin.ModelAdmin):
     readonly_fields = (
         'employee_count',
     )
-
+    
 
 @admin.register(EmployeeDevelopmentPlan)
 class EmployeeDevelopmentPlanAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'employee', 'development_plan', 'performance_score',
+        'add_date',
+    )
+    fields = (
+        'employee', 'development_plan', 'performance_score',
+    )
 
 
 @admin.register(Engagement)
@@ -46,19 +52,23 @@ class EngagementAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeeEngagement)
 class EmployeeEngagementAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'employee', 'engagement', 'performance_score', 'add_date',
+    )
 
 
 @admin.register(KeyPeople)
 class KeyPeopleAdmin(admin.ModelAdmin):
     readonly_fields = (
-        'employee_count',
+        'employee_count', 
     )
 
 
 @admin.register(EmployeeKeyPeople)
 class EmployeeKeyPeopleAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'add_date',
+    )
 
 
 @admin.register(TrainingApplication)
@@ -82,7 +92,9 @@ class BusFactorAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeeBusFactor)
 class EmployeeBusFactorAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'add_date',
+    )
 
 
 @admin.register(Grade)
@@ -114,7 +126,11 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeeTeam)
 class EmployeeTeamAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('manager', 'team', 'get_employees')
+
+    def get_employees(self, obj):
+        return ", ".join([employee.__str__() for employee in obj.employee.all()])
+    get_employees.short_description = 'Сотрудники'
 
 
 @admin.register(Position)
