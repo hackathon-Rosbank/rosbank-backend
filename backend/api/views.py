@@ -19,19 +19,22 @@ from core.models import (
     BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
     Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
     TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
-    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
+    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee,
+    EmployeeAssesmentSkill, AssesmentSkill,
 )
+from yaml import serialize
+
 from .serializers import (
     EmployeeSerializer,
-    # DevelopmentPlanSerializer,
     IndividualDevelopmentPlanRequestSerializer,
     TeamMetricsResponseSerializer,
-    # SkillAssessmentRequestSerializer,
-    TeamMetricsRequestSerializer, 
-    SkillDomenRequestSerializer, 
+    TeamMetricsRequestSerializer,
+    SkillDomenRequestSerializer,
     MetricResponseSerializer,
     CompetencyLevelRequestSerializer,
     SkillLevelRequestSerializer,
+    TeamSkillAverageSerializer,
+    IndividualSkillAverageSerializer, TeamSkillSerializer,
 )
 
 from rest_framework.response import Response
@@ -41,12 +44,13 @@ from datetime import datetime
 from calendar import month_name
 
 
-class EmployeesViewSet(viewsets.ModelViewSet): 
+class EmployeesViewSet(mixins.ListModelMixin,  # Для получения списка сотрудников
+                        mixins.RetrieveModelMixin,  # Для получения конкретного сотрудника по ID
+                        viewsets.GenericViewSet): 
     serializer_class = EmployeeSerializer
     
     def get_queryset(self):
         team_slug = self.kwargs.get('team_slug')  # Получаем слаг команды
-        print(team_slug)
         # user = self.request.user
         # user = ManagerTeam.objects.get(id=1)
         
@@ -61,8 +65,9 @@ class EmployeesViewSet(viewsets.ModelViewSet):
 
 
 class MetricViewSet(viewsets.ViewSet):
-    serializer_class = TeamMetricsResponseSerializer
-    def create(self, request, metric_type):
+    """ . """
+    
+    def create(self, request, metric_type, employee_id):
         if request.method != 'POST':
             return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -71,7 +76,7 @@ class MetricViewSet(viewsets.ViewSet):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        employee_ids = serializer.validated_data['employeeIds']
+        # Получаем даты из сериализатора
         start_date, end_date = self.convert_to_date(
             serializer.validated_data['startPeriod'], 
             serializer.validated_data['endPeriod']
@@ -86,7 +91,8 @@ class MetricViewSet(viewsets.ViewSet):
         if not model:
             return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
 
-        dashboard, last_performance = self.get_employee_metrics(employee_ids, model, start_date, end_date)
+        # Получаем метрики для одного сотрудника по его ID
+        dashboard, last_performance = self.get_employee_metrics(employee_id, model, start_date, end_date)
 
         response_data = {
             "dashboard": [],
@@ -100,26 +106,27 @@ class MetricViewSet(viewsets.ViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-    def get_employee_metrics(self, employee_ids, model, start_date, end_date):
+    def get_employee_metrics(self, employee_id, model, start_date, end_date):
         dashboard = []
 
-        for employee_id in employee_ids:
-            employee_metrics = model.objects.filter(
-                employee__employee_id=employee_id,
-                add_date__range=[start_date, end_date]
-            )
+        # Измените фильтрацию, чтобы использовать только один ID
+        employee_metrics = model.objects.filter(
+            employee__id=employee_id,
+            add_date__range=[start_date, end_date]
+        )
 
-            if not employee_metrics.exists():
-                continue
 
-            # Группируем метрики по месяцам
-            metrics_by_month = self.group_metrics_by_month(employee_metrics)
+        if not employee_metrics.exists():
+            return dashboard, "0.00"  # Если нет метрик, возвращаем пустой результат
 
-            for (year, month), performance in metrics_by_month.items():
-                dashboard.append({
-                    "period": {"month": month_name[month], "year": year},
-                    "performance": str(performance)
-                })
+        # Группируем метрики по месяцам
+        metrics_by_month = self.group_metrics_by_month(employee_metrics)
+
+        for (year, month), performance in metrics_by_month.items():
+            dashboard.append({
+                "period": {"month": month_name[month], "year": year},
+                "performance": str(performance)
+            })
 
         last_performance = dashboard[-1]['performance'] if dashboard else "0.00"
         return dashboard, last_performance
@@ -132,71 +139,45 @@ class MetricViewSet(viewsets.ViewSet):
         return metrics_by_month
 
     def convert_to_date(self, start_period, end_period):
-        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
-        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
+        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-13", "%Y-%B-%d").date()
+        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-13", "%Y-%B-%d").date()
         return start_date, end_date
 
 
 class TeamCountEmployeeViewSet(viewsets.ViewSet):
-    def create(self, request, team_slug):
-        if request.method != 'POST':
-            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        request_serializer = TeamMetricsRequestSerializer(data=request.data)
-
-        if request_serializer.is_valid():
-            start_period = request_serializer.validated_data['startPeriod']
-            end_period = request_serializer.validated_data['endPeriod']
-
-            return self.get_team_employee_data(team_slug, start_period, end_period)
-
-        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get_team_employee_data(self, team_slug, start_period, end_period):
+    def list(self, request, *args, **kwargs):
         dashboard = []
-
+        team_slug = kwargs.get('team_slug')
         # Получаем команду по слагу
         try:
             team = EmployeeTeam.objects.get(team__slug=team_slug)
             employees = team.employee.all()  # Получаем всех сотрудников команды
 
             # Преобразуем даты начала и окончания
-            start_date, end_date = self.convert_to_date(start_period, end_period)
 
             # Получаем количество сотрудников, Bus факторов и Key People
             number_of_employees = employees.count()
             number_of_bus_factors = EmployeeBusFactor.objects.filter(
                 employee__in=employees,
-                add_date__range=[start_date, end_date]
             ).count()
             number_of_key_people = EmployeeKeyPeople.objects.filter(
                 employee__in=employees,
-                add_date__range=[start_date, end_date]
             ).count()
 
             # Добавляем результаты в dashboard
-            dashboard.append({
-                "period": {
-                    "month": month_name[start_date.month],
-                    "year": str(start_date.year)
-                },
+            dashboard = {
                 "numberOfEmployee": str(number_of_employees),
                 "numberOfBusFactor": str(number_of_bus_factors),
-                "numberOfKeyPeople": str(number_of_key_people)
-            })
-
-            return Response({"dashboard": dashboard}, status=status.HTTP_200_OK)
+                "numberOfKeyPeople": str(number_of_key_people),
+            }
+            serializer = TeamSkillSerializer(dashboard)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         except EmployeeTeam.DoesNotExist:
             return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    def convert_to_date(self, start_period, end_period):
-        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
-        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
-        return start_date, end_date
 
-
-#################################
 class TeamMetricViewSet(viewsets.ViewSet):
     def create(self, request, team_slug, metric_type):
         request_serializer = TeamMetricsRequestSerializer(data=request.data)
@@ -244,8 +225,8 @@ class TeamMetricViewSet(viewsets.ViewSet):
         return Response(response_data, status=status.HTTP_200_OK)
 
     def convert_to_date(self, start_period, end_period):
-        return (datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date(),
-                datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date())
+        return (datetime.strptime(f"{start_period['year']}-{start_period['month']}-12", "%Y-%B-%d").date(),
+                datetime.strptime(f"{end_period['year']}-{end_period['month']}-12", "%Y-%B-%d").date())
 
     def get_metric_model(self, metric_type):
         return {
@@ -275,14 +256,16 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
 
     def get_competencies(self, team, employee_id, skill_domen):
         if employee_id is not None:
-            employee = get_object_or_404(team.employee.all(), id=employee_id)
+            # Загружаем только одного сотрудника по его ID
             return EmployeeCompetency.objects.filter(
-                employee=employee,
+                employee__id=employee_id,
+                employee__teams=team,
                 competency__competency_type=skill_domen
             )
         else:
+            # Загружаем все компетенции сотрудников команды
             return EmployeeCompetency.objects.filter(
-                employee__in=team.employee.all(),
+                employee__teams=team,
                 competency__competency_type=skill_domen
             )
 
@@ -354,17 +337,22 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
         """
         Метод для определения цвета в зависимости от уровня компетенции.
         """
-        level = int(competency_level)
-        if level > 80:
-            return "green"
-        elif level >= 60:
+        level = int(competency_level)  # Преобразуем строковый уровень в число
+
+        if level <= 33:
+            return "red"
+        elif 34 <= level <= 66:
             return "yellow"
+        elif level >= 67:
+            return "green"
+        else:
+            raise ValueError(f"Invalid competency level: {competency_level}")
 #################################
 
 class TeamSkillViewSet(viewsets.ViewSet):
 
     def create(self, request, team_slug):
-    # def get_average_skills(self, request, team_slug):
+
         skill_domen = request.data.get("skillDomen")
 
         if not skill_domen:
@@ -375,25 +363,34 @@ class TeamSkillViewSet(viewsets.ViewSet):
         data = []
 
         for skill in skills:
-            planned_avg = EmployeeSkill.objects.filter(skill=skill).aggregate(Avg('skill_level'))[
-                              'skill_level__avg'] or 0
-            actual_avg = EmployeeAssesmentSkill.objects.filter(assesmentskill__skill=skill).aggregate(Avg('assesment'))[
-                             'assesment__avg'] or 0
+            # Получаем средние плановые результаты по данному навыку
+            planned_avg = EmployeeSkill.objects.filter(skill=skill).aggregate(Avg('skill_level'))['skill_level__avg'] or 0
 
-            data.append({
-                "skillDomen": skill_domen,
-                "skillId": skill.id,
-                "skillName": skill.skill_name,
-                "plannedResult": round(planned_avg, 2),
-                "actualResult": round(actual_avg, 2)
-            })
+            # Исправление: сначала ищем соответствующий экземпляр AssesmentSkill
+            assesment_skill = AssesmentSkill.objects.filter(assesmentskill_name=skill.skill_name).first()
 
+            if not assesment_skill:
+                continue  # Пропускаем этот навык, если оценка не найдена
+
+        # Теперь выполняем запрос к EmployeeAssesmentSkill для получения фактических оценок
+        actual_avg = EmployeeAssesmentSkill.objects.filter(assesmentskill=assesment_skill).aggregate(Avg('assesment'))[
+                         'assesment__avg'] or 0
+
+        data.append({
+            "skillDomen": skill_domen,
+            "skillId": skill.id,
+            "skillName": skill.skill_name,
+            "plannedResult": round(planned_avg, 2),
+            "actualResult": round(actual_avg, 2)
+        })
+
+        serializer = TeamSkillAverageSerializer(data, many=True)
         return Response({"data": data}, status=status.HTTP_200_OK)
 
 
 class IndividualSkillViewSet(viewsets.ViewSet):
 
-    def get_individual_skills(self, request):
+    def create(self, request, team_slug):
         employee_ids = request.data.get("employeeIds", [])
         skill_domen = request.data.get("skillDomen")
 
