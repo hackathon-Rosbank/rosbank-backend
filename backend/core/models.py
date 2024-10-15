@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 
 from django.contrib.auth.models import AbstractUser
@@ -10,13 +11,13 @@ from users.models import ManagerTeam
 
 
 class Employee(models.Model):
-    """ Модель сотрудника. """
+    """Модель сотрудника."""
 
     employee_id = models.CharField(
         max_length=100,
         unique=True,
-        editable=False,  # Поле не должно редактироваться
-        default=uuid.uuid4,  # Генерация уникального идентификатора
+        editable=False,
+        default=uuid.uuid4,
     )
     first_name = models.CharField(
         max_length=100,
@@ -27,17 +28,13 @@ class Employee(models.Model):
         verbose_name='Фамилия',
     )
     email = models.EmailField(
-        max_length=100,
-        unique=True,
-        verbose_name='E-mail'
+        max_length=100, unique=True, verbose_name='E-mail'
     )
-    status = models.CharField(
-        max_length=50
-    )  # E.g., completed, in-progress
+    status = models.CharField(max_length=50)
     registration_date = models.DateField(
         auto_now_add=True,
         db_index=True,
-        verbose_name='Дата регистрации сотрудника'
+        verbose_name='Дата регистрации сотрудника',
     )
     last_login_date = models.DateField(
         auto_now_add=True,
@@ -67,13 +64,11 @@ class AssesmentSkill(models.Model):
     class Meta:
         verbose_name = 'Оценка навыка'
         verbose_name_plural = 'Оценки навыков'
-        ordering = (
-            'assesmentskill_name',
-        )
+        ordering = ('assesmentskill_name',)
 
 
 class EmployeeAssesmentSkill(models.Model):
-    """ Модель -Оценка сотрудника-. """
+    """Модель -Оценка сотрудника-."""
 
     employee = models.ForeignKey(
         Employee,
@@ -91,13 +86,11 @@ class EmployeeAssesmentSkill(models.Model):
     class Meta:
         verbose_name = 'Оценка навыка сотрудника'
         verbose_name_plural = 'Оценки навыков сотрудников'
-        ordering = (
-        'employee',
-    )
+        ordering = ('employee',)
 
 
 class DevelopmentPlan(models.Model):
-    """ Модель -План развития-."""
+    """Модель -План развития-."""
 
     plan_name = models.CharField(
         max_length=255,
@@ -109,20 +102,17 @@ class DevelopmentPlan(models.Model):
         verbose_name='Кол-во сотрудников с планом развития',
     )
 
-
     class Meta:
         verbose_name = 'План развития'
         verbose_name_plural = 'Планы развития'
-        ordering = (
-            'plan_name',
-        )
+        ordering = ('plan_name',)
 
     def __str__(self):
         return self.plan_name
 
 
 class EmployeeDevelopmentPlan(models.Model):
-    """ Модель -План развития сотрудника-. """
+    """Модель -План развития сотрудника-."""
 
     employee = models.ForeignKey(
         Employee,
@@ -148,21 +138,20 @@ class EmployeeDevelopmentPlan(models.Model):
     class Meta:
         verbose_name = 'План развития сотрудника'
         verbose_name_plural = 'Планы развития сотрудников'
-        ordering = (
-            'development_plan',
-        )
+        ordering = ('development_plan',)
 
     def __str__(self):
         return f"{self.employee} - {self.development_plan}"
-    
+
 
 class Engagement(models.Model):
-    """ Модель -Вовлеченность-. """
+    """Модель -Вовлеченность-."""
 
     engagement_name = models.CharField(
         max_length=255,
         verbose_name='Название вовлеченности',
     )
+
     def __str__(self):
         return self.engagement_name
 
@@ -174,13 +163,11 @@ class Engagement(models.Model):
     class Meta:
         verbose_name = 'Вовлеченность'
         verbose_name_plural = 'Вовлеченности'
-        ordering = (
-            'engagement_name',
-        )
+        ordering = ('engagement_name',)
 
 
 class EmployeeEngagement(models.Model):
-    """ Модель -Вовлеченность сотрудника-. """
+    """Модель -Вовлеченность сотрудника-."""
 
     employee = models.OneToOneField(
         Employee,
@@ -204,39 +191,34 @@ class EmployeeEngagement(models.Model):
     class Meta:
         verbose_name = 'Вовлеченность сотрудника'
         verbose_name_plural = 'Вовлеченность сотрудников'
-        ordering = (
-            'performance_score',
-        )
+        ordering = ('performance_score',)
 
     def __str__(self):
         return f"{self.employee} - {self.engagement}"
-    
+
 
 class KeyPeople(models.Model):
-    """ Модель -Key People-. """
+    """Модель -Key People-."""
 
     key_people_name = models.CharField(
         max_length=255,
         verbose_name='Название key people',
     )
     employee_count = models.IntegerField(
-        default=0,
-        verbose_name='Количество сотрудников Key People'
+        default=0, verbose_name='Количество сотрудников Key People'
     )
 
     class Meta:
         verbose_name = 'Вовлеченность сотрудника'
         verbose_name_plural = 'Вовлеченность сотрудников'
-        ordering = (
-            'key_people_name',
-        )
+        ordering = ('key_people_name',)
 
     def __str__(self):
         return self.key_people_name
 
 
 class EmployeeKeyPeople(models.Model):
-    """ Модель -Key People сотрудника-. """
+    """Модель -Key People сотрудника-."""
 
     employee = models.OneToOneField(
         Employee,
@@ -257,16 +239,14 @@ class EmployeeKeyPeople(models.Model):
     class Meta:
         verbose_name = 'Key People сотрудника'
         verbose_name_plural = 'Key People сотрудников'
-        ordering = (
-            'key_people',
-        )
+        ordering = ('key_people',)
 
     def __str__(self):
         return f"{self.employee} - {self.key_people}"
-    
+
 
 class TrainingApplication(models.Model):
-    """ Модель -Заявка на обучение-. """
+    """Модель -Заявка на обучение-."""
 
     training_name = models.CharField(
         max_length=255,
@@ -280,16 +260,14 @@ class TrainingApplication(models.Model):
     class Meta:
         verbose_name = 'Заявка на обучение'
         verbose_name_plural = 'Заявки на обучение'
-        ordering = (
-            'training_name',
-        )
+        ordering = ('training_name',)
 
     def __str__(self):
         return self.training_name
 
 
 class EmployeeTrainingApplication(models.Model):
-    """ Модель -Заявка на обучение сотрудника-. """
+    """Модель -Заявка на обучение сотрудника-."""
 
     employee = models.ForeignKey(
         Employee,
@@ -310,16 +288,14 @@ class EmployeeTrainingApplication(models.Model):
     class Meta:
         verbose_name = 'Заявка на обучение сотрудника'
         verbose_name_plural = 'Заявки на обучение сотрудников'
-        ordering = (
-            'training_application',
-        )
+        ordering = ('training_application',)
 
     def __str__(self):
-        return f"{self.employee} - {self.training_application}"    
-    
+        return f"{self.employee} - {self.training_application}"
+
 
 class BusFactor(models.Model):
-    """ # Модель -Bus Фактор-. """
+    """# Модель -Bus Фактор-."""
 
     bus_factor_name = models.CharField(
         max_length=255,
@@ -333,16 +309,14 @@ class BusFactor(models.Model):
     class Meta:
         verbose_name = 'Bus Фактор'
         verbose_name_plural = 'Bus Факторы'
-        ordering = (
-            'bus_factor_name',
-        )
+        ordering = ('bus_factor_name',)
 
     def __str__(self):
         return self.bus_factor_name
 
 
 class EmployeeBusFactor(models.Model):
-    """ Модель -Bus Фактор сотрудника-. """
+    """Модель -Bus Фактор сотрудника-."""
 
     employee = models.OneToOneField(
         Employee,
@@ -363,16 +337,14 @@ class EmployeeBusFactor(models.Model):
     class Meta:
         verbose_name = 'Bus Фактор сотрудника'
         verbose_name_plural = 'Bus Факторы сотрудников'
-        ordering = (
-            'bus_factor',
-        )
+        ordering = ('bus_factor',)
 
     def __str__(self):
         return f"{self.employee} - {self.bus_factor}"
-    
+
 
 class Grade(models.Model):
-    """ Модель -Класс-. """
+    """Модель -Класс-."""
 
     grade_name = models.CharField(
         max_length=255,
@@ -382,16 +354,14 @@ class Grade(models.Model):
     class Meta:
         verbose_name = 'Класс'
         verbose_name_plural = 'Классы'
-        ordering = (
-            'grade_name',
-        )
+        ordering = ('grade_name',)
 
     def __str__(self):
         return self.grade_name
 
 
 class EmployeeGrade(models.Model):
-    """ Модель -Класс сотрудника-. """
+    """Модель -Класс сотрудника-."""
 
     employee = models.OneToOneField(
         Employee,
@@ -407,16 +377,14 @@ class EmployeeGrade(models.Model):
     class Meta:
         verbose_name = 'Класс сотрудника'
         verbose_name_plural = 'Классы сотрудников'
-        ordering = (
-            'grade',
-        )
+        ordering = ('grade',)
 
     def __str__(self):
         return f"{self.employee} - {self.grade}"
 
 
 class KeySkill(models.Model):
-    """ Модель -Ключевой навык-. """
+    """Модель -Ключевой навык-."""
 
     skill_name = models.CharField(
         max_length=255,
@@ -430,16 +398,14 @@ class KeySkill(models.Model):
     class Meta:
         verbose_name = 'Ключевой навык'
         verbose_name_plural = 'Ключевые навыки'
-        ordering = (
-            'skill_name',
-        )
+        ordering = ('skill_name',)
 
     def __str__(self):
         return self.skill_name
 
 
 class EmployeeKeySkill(models.Model):
-    """ Модель -Ключевой навык сотрудника-. """
+    """Модель -Ключевой навык сотрудника-."""
 
     employee = models.ForeignKey(
         Employee,
@@ -464,16 +430,14 @@ class EmployeeKeySkill(models.Model):
     class Meta:
         verbose_name = 'Ключевой навык сотрудника'
         verbose_name_plural = 'Ключевые навыки сотрудников'
-        ordering = (
-            'key_skill',
-        )
+        ordering = ('key_skill',)
 
     def __str__(self):
         return f"{self.employee} - {self.key_skill} ({self.skill_level})"
 
 
 class Team(models.Model):
-    """ Модель команды. """
+    """Модель команды."""
 
     team_name = models.CharField(
         max_length=255,
@@ -494,9 +458,9 @@ class Team(models.Model):
 
 
 class EmployeeTeam(models.Model):
-    """ Модель -Команда сотрудника-. """
+    """Модель -Команда сотрудника-."""
 
-    manager  = models.ForeignKey(
+    manager = models.ForeignKey(
         ManagerTeam,
         on_delete=models.CASCADE,
         related_name='teams',
@@ -516,16 +480,14 @@ class EmployeeTeam(models.Model):
     class Meta:
         verbose_name = 'Команда сотрудника'
         verbose_name_plural = 'Команды сотрудников'
-        ordering = (
-            'team',
-        )
+        ordering = ('team',)
 
     def __str__(self):
         return f"{self.employee} - {self.team}"
 
 
 class Position(models.Model):
-    """ Модель -Должность-. """
+    """Модель -Должность-."""
 
     position_name = models.CharField(
         max_length=255,
@@ -533,23 +495,20 @@ class Position(models.Model):
         verbose_name='Название должности',
     )
     grade_count = models.IntegerField(
-        default=0,
-        verbose_name='Количество грейдов, связанных с должностью'
+        default=0, verbose_name='Количество грейдов, связанных с должностью'
     )
 
     class Meta:
         verbose_name = 'Должность'
         verbose_name_plural = 'Должности'
-        ordering = (
-            'position_name',
-        )
+        ordering = ('position_name',)
 
     def __str__(self):
         return self.position_name
 
 
 class EmployeePosition(models.Model):
-    """ Модель -Должность сотрудника-. """
+    """Модель -Должность сотрудника-."""
 
     employee = models.OneToOneField(
         Employee,
@@ -565,9 +524,7 @@ class EmployeePosition(models.Model):
     class Meta:
         verbose_name = 'Должность сотрудника'
         verbose_name_plural = 'Должности сотрудников'
-        ordering = (
-            'position',
-        )
+        ordering = ('position',)
 
     def __str__(self):
         return f"{self.employee} - {self.position}"
@@ -583,15 +540,14 @@ class SkillTypeEnum(Enum):
 
 
 class Competency(models.Model):
-    """ Модель -Компетенция-. """
+    """Модель -Компетенция-."""
 
     competency_name = models.CharField(
         max_length=255,
         verbose_name='Название компетенции',
     )
     employee_count = models.IntegerField(
-        default=0,
-        verbose_name='Количество сотрудников с данной компетенцией'
+        default=0, verbose_name='Количество сотрудников с данной компетенцией'
     )
     competency_type = models.CharField(
         max_length=4,
@@ -603,37 +559,29 @@ class Competency(models.Model):
     class Meta:
         verbose_name = 'Компетенция'
         verbose_name_plural = 'Компетенции'
-        ordering = (
-            'competency_name',
-        )
+        ordering = ('competency_name',)
 
     def __str__(self):
         return self.competency_name
 
 
 class PositionCompetency(models.Model):
-    """ Модель -Должность к компетенции-. """
+    """Модель -Должность к компетенции-."""
 
     position = models.ForeignKey(
         Position,
         on_delete=models.CASCADE,
         related_name='competencies',
     )
-    competency = models.ForeignKey(
-        Competency,
-        on_delete=models.CASCADE
-    )
+    competency = models.ForeignKey(Competency, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Должность к компетенции'
         verbose_name_plural = 'Должности к компетенциям'
         constraints = (
             models.UniqueConstraint(
-                fields=(
-                    'position',
-                    'competency'
-                ),
-                name='unique_position_competency'
+                fields=('position', 'competency'),
+                name='unique_position_competency',
             ),
         )
 
@@ -642,7 +590,7 @@ class PositionCompetency(models.Model):
 
 
 class TeamPosition(models.Model):
-    """ Модель -Должность для команды-. """
+    """Модель -Должность для команды-."""
 
     team = models.ForeignKey(
         Team,
@@ -656,16 +604,15 @@ class TeamPosition(models.Model):
     class Meta:
         verbose_name = 'Должность для команды'
         verbose_name_plural = 'Должности для команд'
-        ordering = (
-            'team',
-        )
+        ordering = ('team',)
 
     def __str__(self):
         return f"{self.team} - {self.position}"
 
 
 class EmployeeCompetency(models.Model):
-    """ Модель -Компетенция сотрудника-. """
+    """Модель -Компетенция сотрудника-."""
+
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
@@ -696,12 +643,10 @@ class EmployeeCompetency(models.Model):
 
     def __str__(self):
         return f"{self.employee} - {self.competency} ({self.competency_level})"
-    
-
 
 
 class Skill(models.Model):
-    """ Модель -Навык- с выбором типа навыка (hard или soft). """
+    """Модель -Навык- с выбором типа навыка (hard или soft)."""
 
     skill_name = models.CharField(
         max_length=255,
@@ -721,16 +666,14 @@ class Skill(models.Model):
     class Meta:
         verbose_name = 'Навык'
         verbose_name_plural = 'Навыки'
-        ordering = (
-            'skill_name',
-        )
+        ordering = ('skill_name',)
 
     def __str__(self):
         return f'{self.skill_name} ({self.skill_type})'
 
 
 class EmployeeSkill(models.Model):
-    """ Модель -Навык сотрудника-. """
+    """Модель -Навык сотрудника-."""
 
     employee = models.ForeignKey(
         Employee,
@@ -750,16 +693,14 @@ class EmployeeSkill(models.Model):
     class Meta:
         verbose_name = 'Навык сотрудника'
         verbose_name_plural = 'Навыки сотрудников'
-        ordering = (
-            'skill',
-        )
+        ordering = ('skill',)
 
     def __str__(self):
         return f"{self.employee.first_name} {self.employee.last_name} - {self.skill.skill_name} ({self.skill_level})"
 
 
 class SkillForCompetency(models.Model):
-    """ Модель -Навык для компетенции-. """
+    """Модель -Навык для компетенции-."""
 
     skill = models.ForeignKey(
         Skill,
@@ -775,20 +716,16 @@ class SkillForCompetency(models.Model):
         verbose_name_plural = 'Навыки для компетенций'
         constraints = (
             models.UniqueConstraint(
-                fields=(
-                    'skill',
-                    'competency'
-                ),
-                name='unique_skill_competency'
+                fields=('skill', 'competency'), name='unique_skill_competency'
             ),
         )
 
     def __str__(self):
         return f"{self.skill} - {self.competency}"
-    
+
 
 class ExpectedSkill(models.Model):
-    """ Модель -Ожидаемый навык-. """
+    """Модель -Ожидаемый навык-."""
 
     expected_skill_name = models.CharField(
         max_length=255,
@@ -802,16 +739,14 @@ class ExpectedSkill(models.Model):
     class Meta:
         verbose_name = 'Ожидаемый навык'
         verbose_name_plural = 'Ожидаемые навыки'
-        ordering = (
-            'expected_skill_name',
-        )
+        ordering = ('expected_skill_name',)
 
     def __str__(self):
         return self.expected_skill_name
 
 
 class EmployeeExpectedSkill(models.Model):
-    """ Модель -Ожидаемый навык сотрудника-. """
+    """Модель -Ожидаемый навык сотрудника-."""
 
     employee = models.ForeignKey(
         Employee,
@@ -827,39 +762,30 @@ class EmployeeExpectedSkill(models.Model):
     class Meta:
         verbose_name = 'Ожидаемый навык сотрудника'
         verbose_name_plural = 'Ожидаемые навыки сотрудниов'
-        ordering = (
-            'expected_skill',
-        )
+        ordering = ('expected_skill',)
 
     def __str__(self):
         return f"{self.employee} - {self.expected_skill} ({self.skill_level})"
 
 
 class CompetencyForExpectedSkill(models.Model):
-    """ Модель -Компетенция для ожидаемого навыка-. """
+    """Модель -Компетенция для ожидаемого навыка-."""
 
     expected_skill = models.OneToOneField(
         ExpectedSkill,
         on_delete=models.CASCADE,
     )
-    competency = models.ForeignKey(
-        Competency,
-        on_delete=models.CASCADE
-    )
+    competency = models.ForeignKey(Competency, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Компетенция для ожидаемого навыка'
         verbose_name_plural = 'Компетенции для ожидаемых навыков'
         constraints = (
             models.UniqueConstraint(
-                fields=(
-                    'expected_skill',
-                    'competency'
-                ),
-                name='unique_expected_skill_competency'
+                fields=('expected_skill', 'competency'),
+                name='unique_expected_skill_competency',
             ),
         )
 
     def __str__(self):
         return f"{self.expected_skill} - {self.competency}"
-
