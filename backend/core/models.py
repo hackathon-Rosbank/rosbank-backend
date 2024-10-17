@@ -278,6 +278,7 @@ class EmployeeKeyPeople(models.Model):
         KeyPeople,
         on_delete=models.CASCADE,
         verbose_name='Key people',
+        related_name='employees',
     )
     add_date = models.DateField(
         auto_now_add=True,
