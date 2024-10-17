@@ -1,10 +1,19 @@
 from django.contrib import admin
 from core.models import (
-    Employee, EmployeeKeyPeople, EmployeeBusFactor,
-    EmployeeTrainingApplication, EmployeeGrade,
-    EmployeeSkill, EmployeeCompetency, EmployeePosition, EmployeeDevelopmentPlan, EmployeeEngagement
+    Employee,
+    EmployeeKeyPeople,
+    EmployeeBusFactor,
+    EmployeeTrainingApplication,
+    EmployeeGrade,
+    EmployeeSkill,
+    EmployeeCompetency,
+    EmployeePosition,
+    EmployeeDevelopmentPlan,
+    EmployeeEngagement,
+    AssesmentSkill
 )
 from users.models import ManagerTeam
+
 
 class EmployeeKeyPeopleInline(admin.TabularInline):
     model = EmployeeKeyPeople
@@ -23,7 +32,7 @@ class EmployeeTrainingApplicationInline(admin.TabularInline):
 
 class EmployeeSkillInline(admin.TabularInline):
     model = EmployeeSkill
-    extra = 1  # количество пустых форм для добавления новых записей
+    extra = 1
 
 
 class EmployeeCompetencyInline(admin.TabularInline):
@@ -46,48 +55,51 @@ class EmployeeDevelopmentPlanInline(admin.TabularInline):
     extra = 1
 
 
-class EmployeeAssesmentInline(admin.TabularInline):
-    model = EmployeeEngagement
-    extra = 1
-
-
 class EmployeeEngagementInline(admin.TabularInline):
     model = EmployeeEngagement
     extra = 1
-    
-@admin.register(Employee)  # Регистрация модели через декоратор
+
+
+class EmployeeAssesmentSkillInline(admin.TabularInline):
+    model = AssesmentSkill
+    extra = 1
+
+
+@admin.register(Employee)
 class UserAdmin(admin.ModelAdmin):
     inlines = [
         EmployeeKeyPeopleInline,
         EmployeeBusFactorInline,
         EmployeeTrainingApplicationInline,
-        EmployeeSkillInline,  # Инлайн для скиллов
-        EmployeeCompetencyInline,  # Инлайн для компетенций
+        EmployeeSkillInline,
+        EmployeeCompetencyInline,
         EmployeeGradeInline,
         EmployeePositionInline,
         EmployeeDevelopmentPlanInline,
-        EmployeeEngagementInline
+        EmployeeEngagementInline,
+        EmployeeAssesmentSkillInline
     ]
 
-    list_display = (
-        'pk', 'employee_id', 'email', 'first_name', 'last_name'
-    )
-    search_fields = (
-        'email', 'first_name', 'last_name'
-    )
-    list_filter = (
-        'email', 'first_name', 'last_name'
-    )
+    list_display = ('pk', 'employee_id', 'email', 'first_name', 'last_name')
+    search_fields = ('email', 'first_name', 'last_name')
+    list_filter = ('email', 'first_name', 'last_name')
 
-# Админка для ManagerTeam
-@admin.register(ManagerTeam)  # Регистрация модели через декоратор
+
+@admin.register(ManagerTeam)
 class ManagerTeamAdmin(admin.ModelAdmin):
     list_display = (
-        'pk', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser'
+        'pk',
+        'email',
+        'first_name',
+        'last_name',
+        'is_staff',
+        'is_superuser',
     )
-    search_fields = (
-        'email', 'first_name', 'last_name'
-    )
+    search_fields = ('email', 'first_name', 'last_name')
     list_filter = (
-        'email', 'first_name', 'last_name', 'is_staff', 'is_superuser'
+        'email',
+        'first_name',
+        'last_name',
+        'is_staff',
+        'is_superuser',
     )
