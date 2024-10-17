@@ -24,18 +24,13 @@ from .models import (
 
 @admin.register(AssesmentSkill)
 class AssesmentSkillAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'assesment_name',
-    )
+    pass
    
 
 
 @admin.register(EmployeeAssesmentSkill)
 class EmployeeAssesmentSkillAdmin(admin.ModelAdmin):
-    list_display = (
-        'assesment',
-    )
+    pass
 
 
 @admin.register(DevelopmentPlan)
