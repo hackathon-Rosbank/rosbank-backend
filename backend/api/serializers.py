@@ -1,4 +1,6 @@
 # Стандартные библиотеки
+from enum import unique
+
 from django.urls import reverse
 from django.db.models import Avg
 
@@ -34,6 +36,26 @@ class WorkersSerializer(serializers.ModelSerializer):
         fields = ('id', 'employee_id', 'first_name', 'patronymic', 'position')
 
 
+class SkillSerializer(serializers.ModelSerializer):
+    """Сериализатор для навыков сотрудника."""
+
+    skill = serializers.CharField(source='skill.skill_name')
+
+    class Meta:
+        model = EmployeeSkill
+        fields = ('skill', 'skill_level')
+
+
+class CompetencySerializer(serializers.ModelSerializer):
+    """Сериализатор для компетенций сотрудника."""
+
+    competency = serializers.CharField(source='competency.competency_name')
+
+    class Meta:
+        model = EmployeeCompetency
+        fields = ('competency', 'competency_level')
+
+
 class TrainingApplicationSerializer(serializers.ModelSerializer):
     """Сериализатор для заявок на обучение."""
 
@@ -43,7 +65,10 @@ class TrainingApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeTrainingApplication
-        fields = ('id','training_name',)
+        fields = (
+            'id',
+            'training_name',
+        )
 
 
 class AssesmentOfPotentionSerializer(serializers.Serializer):
@@ -55,9 +80,9 @@ class AssesmentOfPotentionSerializer(serializers.Serializer):
     )
 
     def get_assesmentLevel(self, obj):
-        average_assessment = obj.assesments_skills.aggregate(
-            Avg('assesment')
-        )['assesment__avg']
+        average_assessment = obj.assesments_skills.aggregate(Avg('assesment'))[
+            'assesment__avg'
+        ]
         # Если есть средняя оценка, возвращаем её, иначе возвращаем 0
         return average_assessment if average_assessment is not None else 0
 
@@ -153,6 +178,13 @@ class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
     completionForToday = serializers.CharField()
 
 
+class PeriodSerializer(serializers.Serializer):
+    '''Сериализатор для периода.'''
+
+    month = serializers.CharField(max_length=20)
+    year = serializers.IntegerField()
+
+
 class SkillDataSerializer(serializers.Serializer):
     '''Сериализатор для данных навыка.'''
 
@@ -172,8 +204,22 @@ class SkillDomenRequestSerializer(serializers.Serializer):
     '''Сериализатор для запроса навыков.'''
 
     skillDomen = serializers.ChoiceField(
-        choices=SkillTypeEnum.choices(), help_text='Тип навыка: hard или soft'
+        choices=SkillTypeEnum.choices(), help_text="Тип навыка: hard или soft"
     )
+
+
+class CompetencySerializer(serializers.Serializer):
+    '''Сериализатор для компетенции.'''
+
+    competencyId = serializers.IntegerField(source='competency.id')
+    skillDomen = serializers.CharField(source='competency.competency_type')
+    competencyName = serializers.CharField(source='competency.competency_name')
+    plannedResult = serializers.CharField(source='planned_result')
+    actualResult = serializers.SerializerMethodField()
+
+
+    def get_actualResult(self, obj):
+        return f"{obj.actual_result:.1f}"
 
 
 class CompetencyLevelRequestSerializer(serializers.Serializer):
@@ -186,9 +232,7 @@ class CompetencyLevelRequestSerializer(serializers.Serializer):
 class EmployeeCompetencySerializer(serializers.ModelSerializer):
     '''Сериализатор для компетенции сотрудника.'''
 
-    employeeId = serializers.IntegerField(
-        source='employee.id', read_only=True
-    )
+    employeeId = serializers.IntegerField(source='employee.id', read_only=True)
     skillDomen = serializers.SerializerMethodField()
     assessment = serializers.SerializerMethodField()
     color = serializers.SerializerMethodField()
@@ -215,15 +259,22 @@ class EmployeeCompetencySerializer(serializers.ModelSerializer):
         """
         level = int(obj.competency_level)
         if level <= 33:
-            return 'red'
+            return "red"
         elif 34 <= level <= 66:
-            return 'yellow'
+            return "yellow"
         elif level >= 67:
-            return 'green'
+            return "green"
         else:
             raise ValueError(
-                f'Invalid competency level: {obj.competency_level}'
+                f"Invalid competency level: {obj.competency_level}"
             )
+
+
+class PeriodSerializer(serializers.Serializer):
+    '''Сериализатор для периода.'''
+
+    month = serializers.CharField()
+    year = serializers.IntegerField()
 
 
 class MetricDashboardEntrySerializer(serializers.Serializer):
@@ -240,6 +291,41 @@ class TeamMetricResponseSerializer(serializers.Serializer):
     completionForToday = serializers.CharField()
 
 
+class PeriodSerializer(serializers.Serializer):
+    '''Сериализатор для периода.'''
+
+    month = serializers.CharField()
+    year = serializers.CharField()
+
+
+class TeamEmployeeDashboardSerializer(serializers.Serializer):
+    '''Сериализатор для метрик по команде.'''
+
+    period = PeriodSerializer()
+    numberOfEmployee = serializers.CharField()
+    numberOfBusFactor = serializers.CharField()
+    numberOfKeyPeople = serializers.CharField()
+
+
+class CompetencySerializer(serializers.Serializer):
+    '''Сериализатор для компетенции.'''
+
+    competencyId = serializers.IntegerField(source='competency.id')
+    skillDomen = serializers.SerializerMethodField()
+    competencyName = serializers.CharField(
+        source='competency.competency_name',
+        unique=True,
+    )
+    plannedResult = serializers.CharField(source='planned_result')
+    actualResult = serializers.SerializerMethodField()
+
+    def get_skillDomen(self, obj):
+        return obj.competency.competency_type.capitalize()
+
+    def get_actualResult(self, obj):
+        return f"{obj.actual_result:.1f}"
+
+
 class SkillSerializer(serializers.ModelSerializer):
     skillId = serializers.IntegerField(source='id')
     skillName = serializers.CharField(source='skill_name')
@@ -248,7 +334,7 @@ class SkillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Skill
-        fields = ('skillId', 'skillName', 'plannedResult', 'actualResult')
+        fields = ['skillId', 'skillName', 'plannedResult', 'actualResult']
 
 
 class TeamSkillSerializer(serializers.Serializer):
