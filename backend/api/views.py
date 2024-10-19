@@ -8,22 +8,12 @@ from django.db.models import Avg, Sum, QuerySet
 from django.db.models.functions import ExtractMonth, ExtractYear
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.decorators import action
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
-from datetime import datetime
-from calendar import month_name
 from rest_framework import (
     mixins,
-    permissions,
     status,
     viewsets,
-    exceptions,
-    generics
 )
-from rest_framework.response import Response
 
 # Модули текущего проекта
 from core.models import (
@@ -39,17 +29,17 @@ from core.models import (
     Employee,
 )
 from api.serializers import (
+    TeamSkillSerializer,
     EmployeeSerializer,
     TimePeriodRequestSerializer,
     SkillDomenRequestSerializer,
     CompetencyLevelRequestSerializer,
     EmployeeCompetencySerializer,
     TeamMetricResponseSerializer,
-    TeamEmployeeDashboardSerializer,
     CompetencySerializer,
     SkillLevelRequestSerializer,
 )
-from .filters import EmployeeFilter
+from api.filters import EmployeeFilter
 
 
 class DateConversionMixin:
@@ -58,11 +48,9 @@ class DateConversionMixin:
     ) -> Tuple[date, date]:
         """
         Преобразует периоды (начальный и конечный) в объекты даты.
-
         Параметры:
         - start_period (dict): Словарь с ключами 'year' (строка) и 'month' (название месяца на английском).
         - end_period (dict): Словарь с ключами 'year' (строка) и 'month' (название месяца на английском).
-
         Возвращает:
         - Tuple[date, date]: Кортеж с двумя объектами `date` — начальной и конечной датами.
         """
@@ -94,7 +82,6 @@ class EmployeesViewSet(
         team = get_object_or_404(Team, slug=team_slug)
         manager = get_object_or_404(ManagerTeam, id=2)
 
-        # Возвращаем сотрудников, относящихся к команде текущего менеджера
         return Employee.objects.filter(
             teams__team=team, teams__manager=manager
         )
@@ -112,12 +99,10 @@ class MetricViewSet(
     def create(self, request, metric_type: str, employee_id: int) -> Response:
         """
         Создает метрики для сотрудника на основе временного периода.
-
         Параметры:
         - request: объект запроса.
         - metric_type: тип метрики.
         - employee_id: идентификатор сотрудника.
-
         Возвращает:
         - Response: данные метрик и статус 200 (OK).
         """
@@ -150,13 +135,11 @@ class MetricViewSet(
     ) -> Tuple[List[dict], str]:
         """
         Получает метрики сотрудника за заданный период.
-
         Параметры:
         - employee_id: идентификатор сотрудника.
         - model: модель метрики.
         - start_date: дата начала периода.
         - end_date: дата окончания периода.
-
         Возвращает:
         - dashboard: список метрик по месяцам.
         - last_performance: последняя метрика производительности.
@@ -187,10 +170,8 @@ class MetricViewSet(
     ) -> Dict[Tuple[int, int], float]:
         """
         Группирует метрики по месяцу и вычисляет среднее значение performance_score.
-
         Параметры:
         - employee_metrics: метрики сотрудника.
-
         Возвращает:
         - metrics_by_month_dict: словарь с ключом (year, month) и значением среднего performance_score.
         """
@@ -237,20 +218,15 @@ class MetricViewSet(
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TeamCountEmployeeViewSet(
-    mixins.ListModelMixin, viewsets.GenericViewSet
-):
+class TeamCountEmployeeViewSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         dashboard = []
         team_slug = kwargs.get('team_slug')
         # Получаем команду по слагу
         try:
             team = EmployeeTeam.objects.get(team__slug=team_slug)
-            employees = team.employee.all()  # Получаем всех сотрудников команды
+            employees = team.employee.all()
 
-            # Преобразуем даты начала и окончания
-
-            # Получаем количество сотрудников, Bus факторов и Key People
             number_of_employees = employees.count()
             number_of_bus_factors = EmployeeBusFactor.objects.filter(
                 employee__in=employees,
@@ -259,7 +235,6 @@ class TeamCountEmployeeViewSet(
                 employee__in=employees,
             ).count()
 
-            # Добавляем результаты в dashboard
             dashboard = {
                 "numberOfEmployee": str(number_of_employees),
                 "numberOfBusFactor": str(number_of_bus_factors),
@@ -269,7 +244,9 @@ class TeamCountEmployeeViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except EmployeeTeam.DoesNotExist:
-            return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class TeamMetricViewSet(
@@ -284,12 +261,10 @@ class TeamMetricViewSet(
     def create(self, request, team_slug: str, metric_type: str) -> Response:
         """
         Создает метрики для команды на основе временного периода.
-
         Параметры:
         - request: объект запроса.
         - team_slug: уникальный слаг команды.
         - metric_type: тип метрики.
-
         Возвращает:
         - Response: данные метрик и статус 200 (OK) или сообщение об ошибке.
         """
@@ -385,12 +360,10 @@ class TeamIndividualCompetenciesViewSet(
     ) -> Response:
         """
         Создает запрос на получение компетенций для команды и/или сотрудника.
-
         Параметры:
         - request: объект запроса.
         - team_slug: уникальный слаг команды.
         - employee_id: (необязательный) ID сотрудника.
-
         Возвращает:
         - Response: компетенции сотрудников и статус 200 (OK) или сообщение об ошибке.
         """
@@ -444,12 +417,10 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     ) -> Response:
         """
         Создает запрос на получение уровней компетенций для сотрудников в команде.
-
         Параметры:
         - request: объект запроса.
         - team_slug: уникальный слаг команды.
         - employee_id: (необязательный) ID сотрудника.
-
         Возвращает:
         - Response: уровни компетенций сотрудников и статус 200 (OK) или сообщение об ошибке.
         """
@@ -463,13 +434,10 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         competency_id = serializer.validated_data['competencyId']
         skill_domen = serializer.validated_data['skillDomen']
 
-
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-        # Получаем сотрудников команды
         employees = self.get_employees(team, employee_id)
 
-        # Фильтруем компетенции сотрудников
         employee_competencies = EmployeeCompetency.objects.filter(
             employee__in=employees,
             competency__id=competency_id,
@@ -512,7 +480,6 @@ class TeamIndividualSkillsViewSet(
 
         if 'employeeIds' in self.request.data:
             employee_id = self.request.data.get('employeeIds')
-            # Получаем сотрудников по переданным ID
             employees = Employee.objects.filter(id__in=employee_id)
         request_serializer = SkillDomenRequestSerializer(data=request.data)
 
@@ -523,7 +490,6 @@ class TeamIndividualSkillsViewSet(
             skills = self.get_skills(team, employee_id, skill_domen)
             data = self.prepare_skill_data(skills, skill_domen, team)
 
-            # Возвращаем данные в формате {"data": data}
             return Response({"data": data}, status=status.HTTP_200_OK)
 
         return Response(
@@ -532,14 +498,12 @@ class TeamIndividualSkillsViewSet(
 
     def get_skills(self, team, employee_id, skill_domen):
         if employee_id is not None:
-            # Загружаем только одного сотрудника по его ID
             return EmployeeSkill.objects.filter(
                 employee__id__in=employee_id,
                 employee__teams=team,
                 skill__skill_type=skill_domen,
             )
         else:
-            # Загружаем все компетенции сотрудников команды
             return EmployeeSkill.objects.filter(
                 employee__teams=team, skill__skill_type=skill_domen
             )
@@ -569,7 +533,6 @@ class TeamIndividualSkillsViewSet(
                 "plannedResult": round(planned_avg, 2),
                 "actualResult": round(actual_avg, 2),
             }
-            # Проверка, если в data уже есть элемент с таким же skillId
             if not any(d['skillId'] == temp['skillId'] for d in data):
                 data.append(temp)
         return data
@@ -585,31 +548,25 @@ class SkillLevelViewSet(viewsets.ViewSet):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        # Валидация данных запроса
         request_serializer = SkillLevelRequestSerializer(data=request.data)
         if not request_serializer.is_valid():
             return Response(
                 request_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Получаем данные из запроса
         skill_id = request_serializer.validated_data['skillId']
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-        # Получаем сотрудников команды
         employees = self.get_employees(team, employee_id)
 
-        # Фильтруем компетенции сотрудников
         employee_skills = EmployeeSkill.objects.filter(
             employee__in=employees,
             skill__id=skill_id,
         )
 
-        # Если компетенций нет
         if not employee_skills.exists():
             return Response({"data": []}, status=status.HTTP_200_OK)
 
-        # Формируем данные для ответа
         data = self.prepare_skill_data(employee_skills)
         return Response({"data": data}, status=status.HTTP_200_OK)
 
@@ -642,7 +599,7 @@ class SkillLevelViewSet(viewsets.ViewSet):
     def get_color_based_on_assessment(self, skill_level):
         """Метод для определения цвета в зависимости от уровня навыка."""
 
-        level = int(skill_level)  # Преобразуем строковый уровень в число
+        level = int(skill_level)
 
         if level <= 33:
             return "red"
