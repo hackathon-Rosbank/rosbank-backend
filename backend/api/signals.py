@@ -106,27 +106,3 @@ def update_employee_count_on_save(sender, instance, created, **kwargs):
                 bus_factor=bus_factor
             ).count()
             bus_factor.save()
-
-
-# Сигнал для обновления employee_count при удалении записи EmployeeBusFactor
-# @receiver(post_save, sender=EmployeeKeyPeople)
-# def update_employee_count_on_save_key_people(sender, instance, created, **kwargs):
-#     if created:
-#         key_people = instance.key_people
-#         with transaction.atomic():
-#             key_people.employee_count = EmployeeKeyPeople.objects.filter(
-#                 key_people=key_people
-#             ).count()
-#             key_people.save()
-
-
-# # Сигнал для обновления employee_count при удалении записи EmployeeKeyPeople
-# @receiver(post_delete, sender=EmployeeKeyPeople)
-# def update_employee_count_on_delete_key_people(sender, instance, **kwargs):
-#     key_people = instance.key_people
-#     with transaction.atomic():
-#         key_people.employee_count = EmployeeKeyPeople.objects.filter(
-#             key_people=key_people
-#         ).count()
-#         key_people.save()
-
