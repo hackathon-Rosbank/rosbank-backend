@@ -1,6 +1,5 @@
 from django_filters import rest_framework as filters
 from core.models import Employee
-from django.db.models import Q
 
 
 class EmployeeFilter(filters.FilterSet):
@@ -28,23 +27,21 @@ class EmployeeFilter(filters.FilterSet):
         help_text='Компетенция сотрудника',
     )
     worker = filters.CharFilter(
-        field_name='employee__first_name ' + 'employee__last_name',
-        lookup_expr='icontains',
-        # method='filter_by_name',
-        label='ФИО сотрудника',
-        help_text='ФИО сотрудника'
+        method='filter_by_full_name',
+        label='Полное имя сотрудника',
     )
 
     class Meta:
         model = Employee
         fields = ('position', 'grade', 'skill', 'competency', 'worker',)
 
-    def filter_by_name(self, queryset, name, value):
-        parts = value.split()
-        query = Q()
-
-
-        for part in parts:
-            query |= Q(first_name__icontains=part) | Q(last_name__icontains=part)
-
-        return queryset.filter(query)
+    def filter_by_full_name(self, queryset, name, value):
+        # Разделение значения на имя и фамилию
+        name_parts = value.strip().split(' ')
+        if len(name_parts) == 2:
+            first_name, last_name = name_parts
+            return queryset.filter(
+                first_name__icontains=first_name,
+                last_name__icontains=last_name
+            )
+        return queryset.none()  # Возвращаем пустой набор, если значение не подходит под формат
