@@ -1,4 +1,4 @@
-#  - Дашборд системы  Starsmap по оценке компетенций сотрудника -
+#  Дашборд системы  Starsmap по оценке компетенций сотрудника
 ***
 ### Общее описание
 > Разрабатываем дашборд системы  Starsmap по оценке компетенций сотрудника. Данный дашборд должен отображать 
@@ -177,8 +177,12 @@
 ![GitHubActions](https://img.shields.io/badge/-GitHubActions-df?style=for-the-badge&logo=GitHubActions&labelColor=black&color=blue)
 ![GitHubActions](https://img.shields.io/badge/-CI/CD-df?style=for-the-badge&logo=CI/CD&labelColor=black&color=blue)
 ***
-### Команда проекта: 
-[![GitHub](https://img.shields.io/badge/-Андрей_Петров-df?style=for-the-badge&logo=GitHub&labelColor=black&color=blue)](https://github.com/PetrovKRS)
-[![GitHub](https://img.shields.io/badge/-Шукало_Родион-df?style=for-the-badge&logo=GitHub&labelColor=black&color=blue)](https://github.com/SHURSHALO)
-
+### Команда проекта:
+### 
+### BACKEND:
+[![Telegram](https://img.shields.io/badge/-Андрей_Петров-df?style=for-the-badge&logo=Telegram&labelColor=black&color=blue)](https://github.com/PetrovKRS)
+[![Telegram](https://img.shields.io/badge/-Шукало_Родион-df?style=for-the-badge&logo=Telegram&labelColor=black&color=blue)](https://github.com/SHURSHALO)
+***
+### FRONTEND:
+[![Telegram](https://img.shields.io/badge/-Николай_Сидорчук-df?style=for-the-badge&logo=Telegram&labelColor=black&color=blue)](https://github.com/k0t1k777)
 ***
