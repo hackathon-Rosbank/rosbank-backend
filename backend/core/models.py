@@ -577,6 +577,12 @@ class PositionGrade(models.Model):
         verbose_name = 'Грейд сотрудника'
         verbose_name_plural = 'Грейды сотрудников'
         ordering = ('position',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('position', 'grade'),
+                name='unique_position_grade',
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.position} ({self.grade})"
